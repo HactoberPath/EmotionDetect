@@ -12,3 +12,26 @@ mobile = MobileNetV2(input_shape=(224,224,3),include_top=False,weights='imagenet
 # layer should not be change
 for layer in mobile.layers:
   layer.trainable = False
+
+  
+  # Make output layer of mobilenet
+op_layer = mobile.output
+op_layer = MaxPooling2D(pool_size=(6,6))(op_layer)
+op_layer = Flatten()(op_layer)
+op_layer = Dense(128,activation='relu')(op_layer)
+op_layer = Dropout((0.5))(op_layer)
+op_layer = Dense(2,activation= 'softmax')(op_layer)
+
+# Define model input and output
+model = Model(inputs = mobile.input , outputs = op_layer)
+
+# compiling model
+model.compile(optimizer = 'adam', 
+              loss = 'binary_crossentropy', 
+              metrics = ['acc'])
+
+# defining a new model as feature extractor for svm and xgboost
+model_new = Model(inputs = mobile.input , outputs = op_layer)
+
+#compiling model
+model_new.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['acc'])
